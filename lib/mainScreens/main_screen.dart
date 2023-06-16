@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:uber_users_app/global/global.dart';
+import 'package:uber_users_app/splashScreen/splash_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -205,6 +206,13 @@ class _MainScreenState extends State<MainScreen> {
               blackThemeGoogleMap();
             },
           ),
+          ElevatedButton(
+              onPressed: () {
+                auth.signOut();
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const MySplashScreen()));
+              },
+              child: Text('Sign Out'))
         ],
       ),
     );

@@ -1,7 +1,8 @@
 // ignore_for_file: use_build_context_synchronously
 
-
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -9,7 +10,6 @@ import '../global/global.dart';
 import '../splashScreen/splash_screen.dart';
 import '../widgets/progress_dialog.dart';
 import 'signup_screen.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -43,23 +43,38 @@ class _LoginScreenState extends State<LoginScreen> {
         barrierDismissible: false,
         builder: (BuildContext context) =>
             ProgressDialog(message: 'Logging In, Please wait...'));
-    final UserCredential userCredential = await auth.signInWithEmailAndPassword(
-        email: emailController.text, password: passwordController.text).catchError((error) {
-          Navigator.pop(context);
-          Fluttertoast.showToast(
+    final UserCredential userCredential = await auth
+        .signInWithEmailAndPassword(
+            email: emailController.text, password: passwordController.text)
+        .catchError((error) {
+      Navigator.pop(context);
+      Fluttertoast.showToast(
           msg: error.toString(),
           backgroundColor: Colors.white,
           textColor: Colors.black);
-        });
-        
+    });
 
     if (userCredential != null) {
-      currentFirebaseUser = userCredential.user;
-      Fluttertoast.showToast(
-          msg: 'Logged in successfully',
-          backgroundColor: Colors.white,
-          textColor: Colors.green);
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const MySplashScreen()));
+      DatabaseReference userRef =
+          FirebaseDatabase.instance.ref().child('users');
+      userRef.child(userCredential.user!.uid).once().then((userKey) {
+        final snap = userKey.snapshot;
+        if (snap.value != null) {
+          currentFirebaseUser = userCredential.user;
+          Fluttertoast.showToast(
+              msg: 'Logged in successfully',
+              backgroundColor: Colors.white,
+              textColor: Colors.green);
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => const MySplashScreen()));
+        } else {
+          Navigator.pop(context);
+          Fluttertoast.showToast(
+              msg: 'User not found',
+              backgroundColor: Colors.white,
+              textColor: Colors.black);
+        }
+      });
     }
   }
 
